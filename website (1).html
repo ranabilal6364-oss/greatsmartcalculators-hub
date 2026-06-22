@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Calculator Hub — Everyday Calculators</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#211C18;
+    --cream:#FAF5EA;
+    --clay:#C1622D;
+    --sage:#5C7A5C;
+    --sand:#E9DFC9;
+    --line:rgba(33,28,24,0.14);
+    --card:#FFFFFF;
+    --radius:18px;
+    --shadow:0 14px 30px -14px rgba(33,28,24,0.18);
+  }
+  body.dark{
+    --ink:#F3EEE4;
+    --cream:#16140F;
+    --card:#221E18;
+    --sand:#2C2719;
+    --line:rgba(243,238,228,0.12);
+    --shadow:0 14px 30px -14px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    transition:background .3s ease, color .3s ease;
+  }
+  a{color:inherit; text-decoration:none;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ===== NAV ===== */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:var(--cream);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(6px);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px;
+    max-width:1180px; margin:0 auto;
+  }
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:700; font-size:1.25rem;}
+  .logo .mark{
+    width:38px;height:38px;border-radius:10px;
+    background:var(--clay); color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.1rem; transform:rotate(-4deg);
+  }
+  .logo span{color:var(--clay);}
+  .nav-links{display:flex; gap:28px; align-items:center; font-size:0.92rem; font-weight:500;}
+  .nav-links a:hover{color:var(--clay);}
+  .theme-btn{
+    border:1px solid var(--line); background:var(--card);
+    padding:9px 16px; border-radius:30px; cursor:pointer;
+    font-family:'Inter'; font-size:0.85rem; font-weight:600;
+    display:flex; align-items:center; gap:8px; color:var(--ink);
+    box-shadow:var(--shadow);
+  }
+  @media(max-width:760px){ .nav-links{display:none;} }
+
+  /* ===== HERO ===== */
+  .hero{
+    padding:68px 0 50px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--sage); margin-bottom:16px; font-weight:500;
+  }
+  .hero h1{
+    font-family:'Sora', sans-serif; font-weight:800;
+    font-size:clamp(2.2rem,5vw,3.4rem);
+    line-height:1.08; letter-spacing:-0.02em; max-width:760px;
+  }
+  .hero h1 em{color:var(--clay); font-style:normal;}
+  .hero p{
+    margin-top:18px; font-size:1.08rem; color:var(--ink); opacity:.75;
+    max-width:560px; line-height:1.6;
+  }
+  .hero-stats{
+    display:flex; gap:36px; margin-top:34px; flex-wrap:wrap;
+  }
+  .stat .num{font-family:'Sora',sans-serif; font-weight:700; font-size:1.7rem; color:var(--clay);}
+  .stat .label{font-family:'JetBrains Mono',monospace; font-size:0.74rem; text-transform:uppercase; letter-spacing:.08em; opacity:.6; margin-top:2px;}
+
+  /* ===== SEARCH ===== */
+  .search-section{padding:36px 0 8px;}
+  .search-wrap{position:relative; max-width:560px;}
+  .search-wrap i{position:absolute; left:18px; top:50%; transform:translateY(-50%); opacity:.5;}
+  .search-wrap input{
+    width:100%; padding:15px 20px 15px 48px; border-radius:40px;
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink);
+    font-size:0.98rem; outline:none; transition:border .2s;
+  }
+  .search-wrap input:focus{border-color:var(--clay);}
+
+  /* ===== TOOLS GRID ===== */
+  .tools-section{padding:30px 0 60px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:10px;}
+  .section-head h2{font-family:'Sora',sans-serif; font-size:1.5rem; font-weight:700;}
+  .section-head .tag{font-family:'JetBrains Mono',monospace; font-size:0.78rem; opacity:.55;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:20px;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 20px 22px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover{transform:translateY(-5px);}
+  .card.hidden{display:none;}
+
+  .card-head{display:flex; align-items:center; gap:12px; margin-bottom:16px; padding-bottom:14px; border-bottom:2px solid var(--sand);}
+  .card-head i{font-size:1.35rem; color:var(--clay); width:28px;}
+  .card-head h3{font-family:'Sora',sans-serif; font-size:1.08rem; font-weight:700;}
+
+  .card label{font-family:'JetBrains Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:.06em; opacity:.6; margin-bottom:6px; display:block;}
+  .card input, .card select{
+    width:100%; padding:10px 12px; margin-bottom:12px; border-radius:10px;
+    border:1px solid var(--line); background:var(--cream); color:var(--ink);
+    font-size:0.95rem; outline:none; font-family:'Inter';
+  }
+  .card input:focus{border-color:var(--clay);}
+
+  .btn{
+    margin-top:4px; padding:11px 14px; border-radius:10px; border:none;
+    background:var(--clay); color:#fff; font-weight:600; font-size:0.92rem;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .15s, background .2s;
+  }
+  .btn:hover{background:var(--ink); transform:translateY(-1px);}
+  body.dark .btn:hover{background:var(--sand); color:var(--ink);}
+
+  .result-box{
+    margin-top:14px; padding:13px 14px; border-radius:10px;
+    background:var(--sand); font-family:'JetBrains Mono',monospace; font-size:0.86rem;
+    display:flex; align-items:center; gap:10px; min-height:42px;
+  }
+
+  /* ===== BASIC / SCIENTIFIC CALCULATORS ===== */
+  .calc-card{ grid-column: span 1; }
+  .sci-card{ grid-column: span 2; }
+  @media(max-width:700px){ .sci-card{ grid-column: span 1; } }
+
+  .calc-display{
+    background:var(--ink); color:var(--cream);
+    font-family:'JetBrains Mono', monospace;
+    font-size:1.4rem; text-align:right;
+    padding:16px 14px; border-radius:12px;
+    margin-bottom:14px; min-height:30px;
+    overflow-x:auto; white-space:nowrap;
+  }
+  body.dark .calc-display{ background:#0c0a07; color:var(--clay); }
+
+  .calc-keys{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+  .sci-keys{ grid-template-columns:repeat(5, 1fr); }
+  @media(max-width:700px){ .sci-keys{ grid-template-columns:repeat(4, 1fr); } }
+
+  .calc-keys button{
+    border:1px solid var(--line); background:var(--cream); color:var(--ink);
+    border-radius:9px; padding:11px 4px; font-size:0.92rem; font-weight:600;
+    cursor:pointer; font-family:'JetBrains Mono', monospace;
+    transition:transform .12s, background .15s;
+  }
+  .calc-keys button:hover{ transform:translateY(-2px); }
+  .calc-keys button.op{ background:var(--sand); color:var(--clay); }
+  .calc-keys button.eq{ background:var(--clay); color:#fff; }
+  .calc-keys button.eq:hover{ background:var(--ink); }
+  .calc-keys button.clear{ background:var(--ink); color:var(--cream); }
+  body.dark .calc-keys button{ background:var(--card); }
+  body.dark .calc-keys button.op{ background:#2c2719; }
+
+  /* ===== ABOUT ===== */
+  .about{
+    padding:66px 0 70px; border-top:1px solid var(--line);
+    background:var(--sand);
+  }
+  body.dark .about{background:#1c1810;}
+  .about-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start;}
+  @media(max-width:760px){ .about-grid{grid-template-columns:1fr;} }
+  .about h2{font-family:'Sora',sans-serif; font-size:2rem; font-weight:800; margin-bottom:18px;}
+  .about p{line-height:1.7; opacity:.85; margin-bottom:14px;}
+  .about-list{margin-top:10px;}
+  .about-item{display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--line);}
+  .about-item:last-child{border-bottom:none;}
+  .about-item i{color:var(--clay); font-size:1.2rem; margin-top:3px;}
+  .about-item h4{font-family:'Sora',sans-serif; font-size:1rem; font-weight:700; margin-bottom:4px;}
+  .about-item p{margin:0; font-size:0.92rem; opacity:.75;}
+
+  /* ===== FOOTER ===== */
+  footer{
+    padding:34px 0 40px; text-align:center;
+    font-family:'JetBrains Mono',monospace; font-size:0.8rem; opacity:.6;
+  }
+  footer .disclaimer{max-width:560px; margin:10px auto 0; font-size:0.74rem; opacity:.7;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo"><div class="mark"><i class="fas fa-calculator"></i></div>Smart Calculator<span> Hub</span></div>
+    <div class="nav-links">
+      <a href="#tools">Tools</a>
+      <a href="#about">About</a>
+      <button class="theme-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i><span id="themeLabel">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Nine tools, zero sign-up</div>
+    <h1>Quick sums for <em>real life</em> — age, body, loans, charity, tax, trade, units, and full-on math.</h1>
+    <p>Smart Calculator Hub bundles the small calculations you reach for every week — plus a basic and scientific calculator — into one page that loads fast, asks nothing of you, and keeps your numbers on your own screen.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="num">9</div><div class="label">Calculators</div></div>
+      <div class="stat"><div class="num">0</div><div class="label">Data stored</div></div>
+      <div class="stat"><div class="num">&lt;1s</div><div class="label">To an answer</div></div>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" onkeyup="filterCards()" placeholder="Search — BMI, EMI, Zakat, Tax, Age..." />
+    </div>
+  </section>
+
+  <section class="tools-section" id="tools">
+    <div class="section-head">
+      <h2>The toolbench</h2>
+      <span class="tag">tap a card, get an answer</span>
+    </div>
+
+    <div class="grid" id="cardGrid">
+
+      <div class="card" data-tags="age birthday years">
+        <div class="card-head"><i class="fas fa-calendar-alt"></i><h3>Age Calculator</h3></div>
+        <label for="dob">Date of birth</label>
+        <input type="date" id="dob" />
+        <button class="btn" onclick="calcAge()"><i class="fas fa-clock"></i> Calculate Age</button>
+        <div class="result-box" id="ageResult"><i class="fas fa-hourglass-half"></i> —</div>
+      </div>
+
+      <div class="card" data-tags="bmi health weight height">
+        <div class="card-head"><i class="fas fa-weight-scale"></i><h3>BMI</h3></div>
+        <label for="weight">Weight (kg)</label>
+        <input id="weight" type="number" step="0.1" placeholder="e.g. 72" />
+        <label for="height">Height (m)</label>
+        <input id="height" type="number" step="0.01" placeholder="e.g. 1.75" />
+        <button class="btn" onclick="calcBMI()"><i class="fas fa-calculator"></i> Compute BMI</button>
+        <div class="result-box" id="bmiResult"><i class="fas fa-heartbeat"></i> —</div>
+      </div>
+
+      <div class="card" data-tags="emi loan finance">
+        <div class="card-head"><i class="fas fa-hand-holding-usd"></i><h3>EMI Calculator</h3></div>
+        <label for="loanAmount">Loan amount</label>
+        <input id="loanAmount" type="number" placeholder="e.g. 500000" />
+        <label for="interestRate">Interest % p.a.</label>
+        <input id="interestRate" type="number" step="0.1" placeholder="e.g. 8.5" />
+        <label for="loanTenure">Tenure (years)</label>
+        <input id="loanTenure" type="number" step="0.5" placeholder="e.g. 5" />
+        <button class="btn" onclick="calcEMI()"><i class="fas fa-money-bill-wave"></i> Calculate EMI</button>
+        <div class="result-box" id="emiResult"><i class="fas fa-rupee-sign"></i> —</div>
+      </div>
+
+      <div class="card" data-tags="zakat islamic charity">
+        <div class="card-head"><i class="fas fa-hands-helping"></i><h3>Zakat</h3></div>
+        <label for="wealth">Total wealth (USD)</label>
+        <input id="wealth" type="number" placeholder="e.g. 10000" />
+        <button class="btn" onclick="calcZakat()"><i class="fas fa-star-and-crescent"></i> Calculate Zakat</button>
+        <div class="result-box" id="zakatResult"><i class="fas fa-coins"></i> —</div>
+      </div>
+
+      <div class="card" data-tags="tax income finance">
+        <div class="card-head"><i class="fas fa-file-invoice-dollar"></i><h3>Tax Estimator</h3></div>
+        <label for="monthlyIncome">Monthly income</label>
+        <input id="monthlyIncome" type="number" placeholder="e.g. 80000" />
+        <button class="btn" onclick="calcTax()"><i class="fas fa-percent"></i> Estimate Tax</button>
+        <div class="result-box" id="taxResult"><i class="fas fa-chart-line"></i> —</div>
+      </div>
+
+      <div class="card" data-tags="profit loss business">
+        <div class="card-head"><i class="fas fa-chart-pie"></i><h3>Profit / Loss</h3></div>
+        <label for="costPrice">Cost price</label>
+        <input id="costPrice" type="number" placeholder="e.g. 200" />
+        <label for="sellPrice">Selling price</label>
+        <input id="sellPrice" type="number" placeholder="e.g. 250" />
+        <button class="btn" onclick="calcProfitLoss()"><i class="fas fa-arrow-trend-up"></i> Calculate</button>
+        <div class="result-box" id="plResult"><i class="fas fa-balance-scale"></i> —</div>
+      </div>
+
+      <div class="card" data-tags="unit converter meters km">
+        <div class="card-head"><i class="fas fa-ruler"></i><h3>Unit Converter</h3></div>
+        <label for="meters">Meters</label>
+        <input id="meters" type="number" placeholder="e.g. 1500" />
+        <button class="btn" onclick="convertUnit()"><i class="fas fa-arrows-left-right"></i> Convert to KM</button>
+        <div class="result-box" id="unitResult"><i class="fas fa-road"></i> —</div>
+      </div>
+
+      <div class="card calc-card" data-tags="basic calculator add subtract multiply divide">
+        <div class="card-head"><i class="fas fa-divide"></i><h3>Basic Calculator</h3></div>
+        <div class="calc-display" id="basicDisplay">0</div>
+        <div class="calc-keys" id="basicKeys"></div>
+      </div>
+
+      <div class="card calc-card sci-card" data-tags="scientific calculator sin cos log sqrt power">
+        <div class="card-head"><i class="fas fa-square-root-variable"></i><h3>Scientific Calculator</h3></div>
+        <div class="calc-display" id="sciDisplay">0</div>
+        <div class="calc-keys sci-keys" id="sciKeys"></div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<section class="about" id="about">
+  <div class="wrap">
+    <div class="about-grid">
+      <div>
+        <h2>About Smart Calculator Hub</h2>
+        <p>Smart Calculator Hub started from a small annoyance: every time we needed a quick BMI check, an EMI estimate, or a Zakat figure, we ended up on a different ad-heavy site that asked for an account first.</p>
+        <p>So we put the calculations we reach for most — including a full basic and scientific calculator — into a single page — no installs, no logins, no tracking. Type a number, get an answer, move on with your day.</p>
+        <p>Everything runs in your browser. Nothing you type is sent anywhere or saved on a server, so you can use it for real figures without a second thought.</p>
+      </div>
+      <div class="about-list">
+        <div class="about-item">
+          <i class="fas fa-bolt"></i>
+          <div><h4>Instant</h4><p>Every calculator updates the moment you click — no page reloads, no waiting.</p></div>
+        </div>
+        <div class="about-item">
+          <i class="fas fa-lock"></i>
+          <div><h4>Private by default</h4><p>All math happens on your device. Your income, weight, and loan figures stay yours.</p></div>
+        </div>
+        <div class="about-item">
+          <i class="fas fa-mobile-screen"></i>
+          <div><h4>Works anywhere</h4><p>One responsive page that's just as easy to use on a phone as on a desktop.</p></div>
+        </div>
+        <div class="about-item">
+          <i class="fas fa-moon"></i>
+          <div><h4>Light or dark</h4><p>Switch themes with one tap — your choice is remembered for the session.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><i class="fas fa-code"></i> Smart Calculator Hub · built for quick, everyday math</div>
+    <div class="disclaimer">Figures from the Tax, EMI, and Zakat tools are simplified estimates for general guidance only and are not financial, medical, or religious advice. For decisions that matter, confirm with a qualified professional.</div>
+  </div>
+</footer>
+
+<script>
+  function toggleTheme(){
+    document.body.classList.toggle('dark');
+    const label = document.getElementById('themeLabel');
+    const icon = document.querySelector('.theme-btn i');
+    if(document.body.classList.contains('dark')){
+      label.textContent = 'Light'; icon.className = 'fas fa-sun';
+    } else {
+      label.textContent = 'Dark'; icon.className = 'fas fa-moon';
+    }
+  }
+
+  function filterCards(){
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    document.querySelectorAll('.card').forEach(card=>{
+      const text = card.innerText.toLowerCase();
+      const tags = card.dataset.tags ? card.dataset.tags.toLowerCase() : '';
+      const match = query === '' || text.includes(query) || tags.includes(query);
+      card.classList.toggle('hidden', !match);
+    });
+  }
+
+  function calcAge(){
+    const dob = document.getElementById('dob').value;
+    const res = document.getElementById('ageResult');
+    if(!dob){ res.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Select a date'; return; }
+    const birth = new Date(dob);
+    if(isNaN(birth)){ res.innerHTML = '<i class="fas fa-times"></i> Invalid date'; return; }
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if(m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+    res.innerHTML = `<i class="fas fa-birthday-cake"></i> ${age} years old`;
+  }
+
+  function calcBMI(){
+    const w = parseFloat(document.getElementById('weight').value);
+    const h = parseFloat(document.getElementById('height').value);
+    const res = document.getElementById('bmiResult');
+    if(!w || !h || h <= 0){ res.innerHTML = '<i class="fas fa-exclamation-circle"></i> Enter valid values'; return; }
+    const bmi = w / (h*h);
+    let tag = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
+    res.innerHTML = `<i class="fas fa-weight"></i> BMI = ${bmi.toFixed(2)} (${tag})`;
+  }
+
+  function calcEMI(){
+    const p = parseFloat(document.getElementById('loanAmount').value);
+    const r = parseFloat(document.getElementById('interestRate').value);
+    const t = parseFloat(document.getElementById('loanTenure').value);
+    const res = document.getElementById('emiResult');
+    if(!p || !r || !t || p<=0 || r<=0 || t<=0){
+      res.innerHTML = '<i class="fas fa-exclamation-triangle"></i> All fields must be positive';
+      return;
+    }
+    const mr = r/12/100;
+    const months = t*12;
+    const emi = (p*mr*Math.pow(1+mr,months)) / (Math.pow(1+mr,months)-1);
+    res.innerHTML = `<i class="fas fa-credit-card"></i> EMI = ${emi.toFixed(2)} / month`;
+  }
+
+  function calcZakat(){
+    const z = parseFloat(document.getElementById('wealth').value);
+    const res = document.getElementById('zakatResult');
+    if(!z || z<=0){ res.innerHTML = '<i class="fas fa-exclamation-circle"></i> Enter wealth amount'; return; }
+    res.innerHTML = `<i class="fas fa-star"></i> Zakat (2.5%) = ${(z*0.025).toFixed(2)}`;
+  }
+
+  function calcTax(){
+    const inc = parseFloat(document.getElementById('monthlyIncome').value);
+    const res = document.getElementById('taxResult');
+    if(!inc || inc<=0){ res.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Enter income'; return; }
+    res.innerHTML = `<i class="fas fa-file-invoice"></i> Tax ≈ ${(inc*0.10).toFixed(2)} (10% est.)`;
+  }
+
+  function calcProfitLoss(){
+    const cp = parseFloat(document.getElementById('costPrice').value);
+    const sp = parseFloat(document.getElementById('sellPrice').value);
+    const res = document.getElementById('plResult');
+    if(isNaN(cp) || isNaN(sp)){ res.innerHTML = '<i class="fas fa-exclamation-circle"></i> Enter both prices'; return; }
+    const diff = sp - cp;
+    if(diff >= 0){
+      res.innerHTML = `<i class="fas fa-arrow-up" style="color:#3a9d5d;"></i> Profit = ${diff.toFixed(2)}`;
+    } else {
+      res.innerHTML = `<i class="fas fa-arrow-down" style="color:#c1622d;"></i> Loss = ${Math.abs(diff).toFixed(2)}`;
+    }
+  }
+
+  function convertUnit(){
+    const m = parseFloat(document.getElementById('meters').value);
+    const res = document.getElementById('unitResult');
+    if(isNaN(m) || m<0){ res.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Enter meters'; return; }
+    res.innerHTML = `<i class="fas fa-sign-out-alt"></i> ${(m/1000).toFixed(3)} km`;
+  }
+
+  window.addEventListener('DOMContentLoaded', filterCards);
+
+  // ===== BASIC CALCULATOR =====
+  let basicExpr = '';
+  const basicKeysLayout = [
+    ['C','%','⌫','÷'],
+    ['7','8','9','×'],
+    ['4','5','6','−'],
+    ['1','2','3','+'],
+    ['0','.','=','']
+  ];
+  function buildBasicKeys(){
+    const wrap = document.getElementById('basicKeys');
+    basicKeysLayout.flat().forEach(k=>{
+      if(k===''){ const sp=document.createElement('div'); wrap.appendChild(sp); return; }
+      const btn = document.createElement('button');
+      btn.textContent = k;
+      if(['÷','×','−','+','%'].includes(k)) btn.className='op';
+      if(k==='=') btn.className='eq';
+      if(k==='C') btn.className='clear';
+      btn.onclick = ()=>basicPress(k);
+      wrap.appendChild(btn);
+    });
+  }
+  function basicPress(k){
+    const display = document.getElementById('basicDisplay');
+    if(k==='C'){ basicExpr=''; display.textContent='0'; return; }
+    if(k==='⌫'){ basicExpr = basicExpr.slice(0,-1); display.textContent = basicExpr || '0'; return; }
+    if(k==='='){
+      try{
+        let safe = basicExpr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/%/g,'/100');
+        if(!/^[0-9+\-*/.() ]+$/.test(safe)) throw new Error('bad');
+        const result = Function('"use strict";return ('+safe+')')();
+        display.textContent = Number.isFinite(result) ? +result.toFixed(8) : 'Error';
+        basicExpr = String(display.textContent);
+      }catch(e){ display.textContent = 'Error'; basicExpr=''; }
+      return;
+    }
+    const map = {'×':'×','÷':'÷','−':'−','+':'+'};
+    basicExpr += k;
+    display.textContent = basicExpr;
+  }
+
+  // ===== SCIENTIFIC CALCULATOR =====
+  let sciExpr = '';
+  let degMode = true;
+  const sciKeysLayout = [
+    ['sin','cos','tan','(',')'],
+    ['log','ln','√','^','π'],
+    ['7','8','9','÷','C'],
+    ['4','5','6','×','⌫'],
+    ['1','2','3','−','DEG'],
+    ['0','.','e','+','=']
+  ];
+  function buildSciKeys(){
+    const wrap = document.getElementById('sciKeys');
+    sciKeysLayout.flat().forEach(k=>{
+      const btn = document.createElement('button');
+      btn.textContent = k==='DEG' ? 'DEG' : k;
+      btn.id = k==='DEG' ? 'degBtn' : '';
+      if(['÷','×','−','+'].includes(k)) btn.className='op';
+      if(k==='=') btn.className='eq';
+      if(k==='C') btn.className='clear';
+      btn.onclick = ()=>sciPress(k);
+      wrap.appendChild(btn);
+    });
+  }
+  function sciPress(k){
+    const display = document.getElementById('sciDisplay');
+    if(k==='C'){ sciExpr=''; display.textContent='0'; return; }
+    if(k==='⌫'){ sciExpr = sciExpr.slice(0,-1); display.textContent = sciExpr || '0'; return; }
+    if(k==='DEG'){
+      degMode = !degMode;
+      document.getElementById('degBtn').textContent = degMode ? 'DEG' : 'RAD';
+      return;
+    }
+    if(k==='π'){ sciExpr += 'Math.PI'; display.textContent = sciExpr; return; }
+    if(k==='e'){ sciExpr += 'Math.E'; display.textContent = sciExpr; return; }
+    if(k==='√'){ sciExpr += 'Math.sqrt('; display.textContent = sciExpr; return; }
+    if(k==='^'){ sciExpr += '**'; display.textContent = sciExpr; return; }
+    if(['sin','cos','tan'].includes(k)){
+      sciExpr += (degMode ? `Math.${k}((Math.PI/180)*` : `Math.${k}(`);
+      display.textContent = sciExpr;
+      return;
+    }
+    if(k==='log'){ sciExpr += 'Math.log10('; display.textContent = sciExpr; return; }
+    if(k==='ln'){ sciExpr += 'Math.log('; display.textContent = sciExpr; return; }
+    if(k==='='){
+      try{
+        let safe = sciExpr.replace(/÷/g,'/').replace(/×/g,'*').replace(/−/g,'-');
+        if(!/^[0-9+\-*/.()MathPIElogsqrtncoia\s]+$/.test(safe)) throw new Error('bad');
+        const result = Function('"use strict";return ('+safe+')')();
+        display.textContent = Number.isFinite(result) ? +result.toFixed(8) : 'Error';
+        sciExpr = String(display.textContent);
+      }catch(e){ display.textContent='Error'; sciExpr=''; }
+      return;
+    }
+    sciExpr += k;
+    display.textContent = sciExpr;
+  }
+
+  buildBasicKeys();
+  buildSciKeys();
+</script>
+</body>
+</html>
